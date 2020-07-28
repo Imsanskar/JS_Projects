@@ -13,6 +13,76 @@ function random(max, min){
 }
 
 
+
+
+function MinimunPriorityQueue(){
+    this.pq = [null];
+    this.n = 0;
+
+    /* Minimum Priority Queue API */
+    this.insert = function(key){
+        this.heap.push(key);
+        this.swim(++this.n);
+    }
+
+    this.viewMinimum = function(){
+        if(this.n < 1){
+            return null;
+        }
+        return heap[1];
+    }
+
+    this.delMin = function () {
+        if (this.n < 1) {
+            throw new Error('Called delMin() on empty MinPQ');
+        }
+        this.swap(1, this.n--);
+        let deleted = this.heap.pop();
+        this.sink(1);
+        return deleted;
+    };
+
+    this.isEmpty = function(){
+        return (this.n === 0);
+    }
+
+    // Heap helpers
+    this.swim = function (k) {
+        var j = Math.floor(k / 2);
+        while (j > 0 && this.less(k, j)) {
+            this.swap(j, k);
+            k = j;
+            j = Math.floor(k / 2);
+        }
+    };
+
+    this.sink = function (k) {
+        var j = 2 * k;
+        while (j <= this.n) {
+            if (j < this.n && this.less(j + 1, j)) { j++; }
+            if (this.less(k, j)) { break; }
+            this.swap(j, k);
+            k = j;
+            j = 2 * k;
+        }
+    };
+
+
+    // Array compare and exchange
+    this.less = function (i, j) {
+        // Note: this is particular to the SimEvent object.
+        return this.heap[i].time < this.heap[j].time;
+    };
+    this.swap = function (i, j) {
+        var swap = this.heap[i];
+        this.heap[i] = this.heap[j];
+        this.heap[j] = swap;
+    };
+}
+
+
+
+/*Ball class*/
 function Ball(posX, posY, velX, velY, r, color){
     this.position = {
         x:posX, 
@@ -81,7 +151,7 @@ function Ball(posX, posY, velX, velY, r, color){
         if(this.equals(ball)){
             return Number.POSITIVE_INFINITY;
         }
-        
+
     }
 
 
@@ -174,6 +244,22 @@ class Event{
     }
 }
 
+
+function CollisionSystem(balls){
+
+    //balls checking
+    if(balls == null){
+        throw new Error('Collision System requires array of balls');
+    }
+
+    for(let i = 0; i < balls.length; i++){
+        if(balls[i] == null){
+            throw new Error('Invalid ball passed to Sim constructor');
+        }
+    }
+
+    this.time = 0; // simulation clock time
+}
 
 let b = new Ball(300, 300, 0, 0, 40,'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')');
 let b1 = new Ball(100, 300, 5, 2, 20, 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')');
