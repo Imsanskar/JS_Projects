@@ -26,6 +26,7 @@ function Ball(posX, posY, velX, velY, r, color){
     this.r = r;
     this.mass = 4 / 3 * Math.PI * Math.pow(this.r, 3);
     this.color = color;
+    this.count = 0;
 
     
     //basic move
@@ -55,34 +56,64 @@ function Ball(posX, posY, velX, velY, r, color){
         )
     }
 
+    //Collision prediction
+    this.timeToHitVerticalWall = function () {
+        if (this.velocity.x == 0) {
+            return Number.POSITIVE_INFINITY;
+        }
+        if (this.velocity.x > 0) {
+            return ((CANVAS_WIDTH - this.r - this.position.x) / this.velocity.x)
+        }
+        return ((this.r - this.position.x) / this.velocity.x);
+    }
 
-    //Collision
-    this.bounceOff = function(ball){
-        let dx = this.position.x - ball.position.x;
-        let dy = this.position.y - ball.position.y;
-        let distance = Math.sqrt(dx *dx + dy * dy)
-        if((this.r + ball.r) > distance){
-            let vaix = this.velocity.x;
-            let vaiy = this.velocity.y;
-            this.velocity.x = (vaix * (this.mass - ball.mass) + ball.velocity.x * 2 * ball.mass) / (this.mass + ball.mass);
-            this.velocity.y = (vaiy * (this.mass - ball.mass) + ball.velocity.y * 2 * ball.mass) / (this.mass + ball.mass);
-            
-            ball.velocity.x = 2 * vaix * this.mass / (this.mass + ball.mass) - ball.velocity.x * (this.mass - ball.mass) / (this.mass + ball.mass);
-            ball.velocity.y = 2 * vaiy * this.mass / (this.mass + ball.mass) - ball.velocity.y * (this.mass - ball.mass) / (this.mass + ball.mass);
+    this.timeToHitHorizontalWall = function () {
+        if (this.velocity.y == 0) {
+            return Number.POSITIVE_INFINITY;
+        }
+        if (this.velocity.y > 0) {
+            return ((CANVAS_HEIGHT - this.r - this.position.y) / this.velocity.y)
+        }
+        return ((this.r - this.position.y) / this.velocity.y);
+    }
 
-        } 
+    this.timeToHit = function(ball){
+        if(this.equals(ball)){
+            return Number.POSITIVE_INFINITY;
+        }
+        
+    }
+
+
+    //Collision resolution
+    this.bounceOff = function (ball) {
+        let dx = ball.position.x - this.position.x;
+        let dy = ball.position.y - this.position.y;
+        let R = (this.r + ball.r);
+        let dvx = ball.velocity.x - this.velocity.x;
+        let dvy = ball.velocity.y - this.velocity.y;
+        let dpdv = dx * dvx + dy * dvy;
+        let J = 2 * this.mass * ball.mass * dpdv / ((this.mass + ball.mass) * R);
+        let Jx = J * dx / R;
+        let Jy = J * dy / R;
+        this.velocity.x += Jx / this.mass;
+        this.velocity.y += Jy / this.mass;
+        ball.velocity.x -= Jx / ball.mass;
+        ball.velocity.y -= Jy / ball.mass;
+
+
+        this.count++;
+        ball.count++;
     }
 
     this.bounceOfVerticalWall = function(){
-        if (this.position.x + this.r >= CANVAS_WIDTH || this.position.x - this.r <= 0){
-            this.velocity.x *= -1;
-        }
+        this.velocity.x *= -1;
+        this.count++;
     }
 
     this.bounceOfHorizontalWall = function () {
-        if (this.position.y + this.r > CANVAS_HEIGHT || this.position.y - this.r <= 0) {
-            this.velocity.y *= -1;
-        }
+        this.velocity.y *= -1;
+        this.count++;
     }
 }
 
@@ -94,6 +125,55 @@ Ball.prototype.collisionDetect = function(ball){
         this.bounceOff(ball);
     }
 }
+
+
+
+
+// Neither a nor b null : particle - particle collision
+// a not null and b null : collision between a and a vertical wall
+// a null and b not null : collision between b and a horizontal wall
+// Both a and b null : redraw event(draw all particles)
+
+class Event{
+    constructor(time, a, b){
+        this.time = time;
+        this.a = a;
+        this.b = b;
+        if(a != null){
+            this.countA = a.count;
+        }else{
+            this.countA = -1;
+        }
+
+        if (b != null) {
+            this.countB = b.count;
+        } else {
+            this.countB = -1;
+        }
+    }
+
+    //Here event is a Event object
+    compareTo(event){
+        if(this.time < event.time){
+            return -1;
+        }
+        else if(this.time > event.time){
+            return 1;
+        }
+        return 0;
+    }
+
+    isValid() {
+        if (a != null && a.count() != countA) {
+            return false;
+        }
+        if (b != null && b.count() != countB) {
+            return false;
+        }
+        return true;
+    }
+}
+
 
 let b = new Ball(300, 300, 0, 0, 40,'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')');
 let b1 = new Ball(100, 300, 5, 2, 20, 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')');
@@ -153,9 +233,7 @@ function test(){
     }
     b.draw();
     b.collisionDetect();
+    requestAnimationFrame(test);
 }
 
-
-setInterval(function(){
-    test();
-}, 20);
+test();
