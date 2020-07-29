@@ -166,7 +166,6 @@ function Ball(posX, posY, velX, velY, r, color){
 
         let D = dpdv * dpdv - dvdv * (dpdp - R * R);
         if (D <= 0) { return Number.POSITIVE_INFINITY; };
-        console.log(-(dpdv + Math.sqrt(D)) / dvdv);
         return (-(dpdv + Math.sqrt(D)) / dvdv);        
     }
 
@@ -384,17 +383,30 @@ function path(b){
 
 
 
+let mq = window.matchMedia("(max-width: 600px)");
 
-
-
-
-balls = [];
-for (let i = 0; i < 300; i++) {
-    let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
-    balls[i] = new Ball(random(0, CANVAS_WIDTH), random(0, CANVAS_HEIGHT), 3, 1, 5, color);
+if(mq.matches){
+    radius = 2;
+    balls = [];
+    for (let i = 0; i < 300; i++) {
+        let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
+        balls[i] = new Ball(random(radius, CANVAS_WIDTH - radius), random(radius, CANVAS_HEIGHT-radius), Math.pow(-1, i), Math.pow(-1, i), radius, color);
+    }
+    radius *= 10;
+    balls.push(new Ball(random(20, CANVAS_WIDTH-20), random(0, CANVAS_HEIGHT), 0, 0, 20, 'white'))
+}
+else{
+    radius = 5;
+    balls = [];
+    for (let i = 0; i < 300; i++) {
+        let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
+        balls[i] = new Ball(random(radius, CANVAS_WIDTH - radius), random(radius, CANVAS_HEIGHT-radius), Math.pow(-1,i),Math.pow(-1,i), radius, color);
+    }
+    radius *= 10;
+    balls.push(new Ball(random(radius, CANVAS_WIDTH - radius), random(radius, CANVAS_HEIGHT - radius), 0, 0, radius, 'white'))
 }
 
-balls.push(new Ball(random(0, CANVAS_WIDTH), random(0, CANVAS_HEIGHT), 0, 0, 40, 'white'))
+
 
 
 
@@ -402,7 +414,7 @@ let simulation = new CollisionSystem(balls);
 simulation.redraw();
 function test(){
     simulation.redraw();
-    simulation.simulate(10);
+    simulation.simulate(5);
     requestAnimationFrame(test);
 }
 
