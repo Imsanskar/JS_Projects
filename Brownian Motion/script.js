@@ -1,5 +1,5 @@
-const CANVAS_HEIGHT = window.innerHeight;
-const CANVAS_WIDTH = window.innerWidth;
+var CANVAS_HEIGHT = window.innerHeight;
+var CANVAS_WIDTH = window.innerWidth;
 
 var canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
@@ -110,6 +110,12 @@ function Ball(posX, posY, velX, velY, r, color){
     this.draw = function () {
         context.beginPath();
         context.fillStyle = this.color;
+        while(this.position.x > window.innerWidth){
+            this.position.x -= 50;
+        }
+        while (this.position.y > window.innerHeight) {
+            this.position.y /= 2;
+        }
         context.arc(this.position.x, this.position.y, this.r, 0, 2 * Math.PI);
         context.fill();
     } 
@@ -396,7 +402,7 @@ if(mq.matches){
     balls.push(new Ball(random(20, CANVAS_WIDTH-20), random(0, CANVAS_HEIGHT), 0, 0, 20, 'white'))
 }
 else{
-    radius = 5;
+    radius = 3;
     balls = [];
     for (let i = 0; i < 300; i++) {
         let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
@@ -410,11 +416,16 @@ else{
 
 
 
+
 let simulation = new CollisionSystem(balls);
 simulation.redraw();
-function test(){
+function test() {
+    CANVAS_HEIGHT = window.innerHeight;
+    CANVAS_WIDTH = window.innerWidth;
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
     simulation.redraw();
-    simulation.simulate(5);
+    simulation.simulate(10);
     requestAnimationFrame(test);
 }
 
