@@ -15,7 +15,7 @@ function random(max, min){
 
 
 
-function MinimunPriorityQueue(){
+function MinimumPriorityQueue(){
     this.heap = [null];
     this.n = 0;
 
@@ -73,6 +73,7 @@ function MinimunPriorityQueue(){
         // this is particular to the SimEvent object.
         return this.heap[i].time < this.heap[j].time;
     };
+
     this.swap = function (i, j) {
         var swap = this.heap[i];
         this.heap[i] = this.heap[j];
@@ -94,7 +95,7 @@ function Ball(posX, posY, velX, velY, r, color){
         y:velY
     } 
     this.r = r;
-    this.mass = 4 / 3 * Math.PI * Math.pow(this.r, 3);
+    this.mass = Math.ceil(Math.PI * r * r)
     this.color = color;
     this.count = 0;
 
@@ -111,17 +112,16 @@ function Ball(posX, posY, velX, velY, r, color){
         context.fillStyle = this.color;
         context.arc(this.position.x, this.position.y, this.r, 0, 2 * Math.PI);
         context.fill();
-        // context.closePath();
     } 
 
     //equality comparison
     this.equals = function(ball){
         return(
-            this.r == ball.r &&
-            this.position.x == ball.position.x &&
-            this.position.y == ball.position.y &&
-            this.velocity.x == ball.velocity.x &&
-            this.velocity.y == ball.velocity.y 
+            this.r === ball.r &&
+            this.position.x === ball.position.x &&
+            this.position.y === ball.position.y &&
+            this.velocity.x === ball.velocity.x &&
+            this.velocity.y === ball.velocity.y 
         )
     }
 
@@ -166,6 +166,7 @@ function Ball(posX, posY, velX, velY, r, color){
 
         let D = dpdv * dpdv - dvdv * (dpdp - R * R);
         if (D <= 0) { return Number.POSITIVE_INFINITY; };
+        console.log(-(dpdv + Math.sqrt(D)) / dvdv);
         return (-(dpdv + Math.sqrt(D)) / dvdv);        
     }
 
@@ -185,19 +186,14 @@ function Ball(posX, posY, velX, velY, r, color){
         this.velocity.y += Jy / this.mass;
         ball.velocity.x -= Jx / ball.mass;
         ball.velocity.y -= Jy / ball.mass;
-
-        this.count++;
-        ball.count++;
     }
 
     this.bounceOffVerticalWall = function(){
         this.velocity.x *= -1;
-        this.count++;
     }
 
     this.bounceOffHorizontalWall = function () {
         this.velocity.y *= -1;
-        this.count++;
     }
 }
 
@@ -209,47 +205,27 @@ function Ball(posX, posY, velX, velY, r, color){
 // Neither a nor b null : particle - particle collision
 // a not null and b null : collision between a and a horizontal wall
 // a null and b not null : collision between b and a vertical wall
-class SimulationEvent{
-    constructor(time, a, b){
-        this.time = time;// Create a new event to occur at time t involving a and b.
-        this.a = a;
-        this.b = b;
+function SimulationEvent(time, a, b){
+    this.time = time;// Create a new event to occur at time t involving a and b.
+    this.a = a;
+    this.b = b;
 
-        if (a != null) this.countA = a.count;
-        else this.countA = -1;
-        if (b != null) this.countB = b.count;
-        else this.countB = -1;
-    }
 
     //Here event is a Event object
-    compareTo(event){
-        if(this.time < event.time){
-            return -1;
-        }
-        else if(this.time > event.time){
-            return 1;
-        }
-        return 0;
+    this.compareTo = function(event){
+        return this.time - event.time;
     }
 
-    isValid(simTime) {
-        // if (this.a != null && this.a.count != this.countA) {
-        //     return false;
-        // }
-        // if (this.b != null && this.b.count != this.countB) {
-        //     return false;
-        // }
-        // return true;
-
+    this.isValid = function(simTime) {
         if (this.time < simTime) {
             return false;
         }
-        if (this.a === null) { 
-            return this.time.toFixed(4) == (simTime + this.b.timeToHitVerticalWall()).toFixed(4);
-        } else if (this.b === null) {
-            return this.time.toFixed(4) == (simTime + this.a.timeToHitHorizontalWall()).toFixed(4);
+        if (a === null) {
+            return this.time.toFixed(4) === (simTime + b.timeToHitVerticalWall()).toFixed(4);
+        } else if (b === null) {
+            return this.time.toFixed(4) === (simTime + a.timeToHitHorizontalWall()).toFixed(4);
         } else {
-            return this.time.toFixed(4) == (simTime + this.a.timeToHit(b)).toFixed(4);
+            return this.time.toFixed(4) === (simTime + a.timeToHit(b)).toFixed(4);
         }
     }
 }
@@ -269,45 +245,39 @@ function CollisionSystem(balls){
 
     this.time = 0; // simulation clock time
     this.balls = balls;//Array of balls
-    this.priorityQueue = new MinimunPriorityQueue();//Priority Queue
+    this.priorityQueue = new MinimumPriorityQueue();//Priority Queue
 
     //predicts the collision of the ball
-    this.predictAll = function(ball){
-        if(ball == null){
-            return ;
-        }
+    this.predictAll = function (ball) {
+        if (ball == null) { return; }
         var dt;
-        for(let i =0; i < balls.length; i++){
+        for (var i = 0; i < this.balls.length; i++) {
             dt = ball.timeToHit(balls[i]);
-            if (!isFinite(dt) || dt <= 0) { 
-                continue; 
-            }
-            this.priorityQueue.insert(new SimulationEvent(this.time + dt, balls, balls[i]));
-        }
+            if (!isFinite(dt) || dt <= 0) { continue; }
+            this.priorityQueue.insert(new SimulationEvent(this.time + dt, ball, balls[i]));
 
-        //Vertical wall
+        }
         dt = ball.timeToHitVerticalWall();
         if (isFinite(dt) && dt > 0) {
-            this.priorityQueue.insert(new SimulationEvent(this.time + dt, ball, null, ball))
+            this.priorityQueue.insert(new SimulationEvent(this.time + dt, null, ball));
         }
 
-        //Horizontal wall
+
         dt = ball.timeToHitHorizontalWall();
         if (isFinite(dt) && dt > 0) {
-            this.priorityQueue.insert(new SimulationEvent(this.time, ball, null))
+            this.priorityQueue.insert(new SimulationEvent(this.time + dt, ball, null));
         }
-    }
+    };
 
-    this.predictBalls = function(ball){
-        if(ball == null){
-            return ;
-        }
+    this.predictBalls = function (ball) {
+        if (ball == null) { return; }
+        var dt;
         for (let i = 0; i < this.balls.length; i++) {
             dt = ball.timeToHit(balls[i]);
             if (!isFinite(dt) || dt <= 0) { continue; }
             this.priorityQueue.insert(new SimulationEvent(this.time + dt, ball, balls[i]));
         }
-    }
+    };
 
     this.predictVerticalWall = function(ball){
         if(ball == null){
@@ -315,7 +285,7 @@ function CollisionSystem(balls){
         }
         dt = ball.timeToHitVerticalWall();
         if(isFinite(dt) && dt > 0){
-            this.priorityQueue.insert(new SimulationEvent(this.time + dt, ball, null, ball))
+            this.priorityQueue.insert(new SimulationEvent(this.time + dt, null, ball))
         }
     }
 
@@ -337,7 +307,7 @@ function CollisionSystem(balls){
 
     //redraw the screen
     this.redraw = function () {
-        // context.clearRect(0, 0, canvas.width, canvas.height);
+        context.clearRect(0, 0, canvas.width, canvas.height);
         for (let i = 0; i < this.balls.length; i++) {
             balls[i].draw();
         }
@@ -346,60 +316,52 @@ function CollisionSystem(balls){
 
     //simulation function
     this.simulate = function(dt){
-        var log = 'Start time:' + this.time + '\n';
-        let end = this.time + dt;
-        let increment;
+        var end = this.time + dt;
+        var increment;
         var event;
         while(!this.priorityQueue.isEmpty()){
             event = this.priorityQueue.viewMinimum();
-            this.priorityQueue.delMin();
-
-            if(event.time >= end){
+            if (event.time >= end) {
                 break;
             }
-
-            if(!event.isValid(this.time)){
+            this.priorityQueue.delMin();
+            if (!event.isValid(this.time)) {
                 continue;
             }
 
-            let a = event.a;
-            let b = event.b;
-            // physical collision, so update positions, and then simulation clock
             increment = event.time - this.time;
-            for (let i = 0; i < this.balls[i].length; i++){
+            for (var i = 0; i < this.balls.length; i++) {
                 this.balls[i].move(increment);
             }
             this.time = event.time;
 
+            var a = event.a;
+            var b = event.b;
+
             //process events
-            if(a != null && b != null){
-                console.log('Ball ball;')
-                log += 'Bounced of a ball\n';
+            if (a !== null && b !== null) {
                 a.bounceOff(b);
                 this.predictAll(a);
                 this.predictAll(b);
             }
-            else if (a == null && b != null) {
-                log += 'Bounced of vertical wall\n';
+            else if (a === null && b !== null) {
                 b.bounceOffVerticalWall();
-                this.predictVerticalWall(b);
                 this.predictBalls(b);
+                this.predictVerticalWall(b);
             }
-            else if (a != null && b == null) {
-                log += 'Bounced off Horizontal wall\n';
+            else {
                 a.bounceOffHorizontalWall();
+                this.predictBalls(a);
                 this.predictHorizontalWall(a);
-                this.predictBalls(a);   
             }
-
-            increment = end - this.time;
-            for (let i = 0; i < this.balls.length; i++) {
-                this.balls[i].move(increment);
-            }
-            this.time = end;
-
-            console.log(log);
         }
+
+        increment = end - this.time;
+        for (let i = 0; i < this.balls.length; i++) {
+            this.balls[i].move(increment);
+        }
+        this.time = end;
+
     }
 }
 
@@ -429,7 +391,7 @@ function path(b){
 balls = [];
 for (let i = 0; i < 10; i++) {
     let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
-    balls[i] = new Ball(random(0, CANVAS_WIDTH), random(0, CANVAS_HEIGHT),5,5,20, color);
+    balls[i] = new Ball(random(0, CANVAS_WIDTH), random(0, CANVAS_HEIGHT), 1, 1, 30, color);
 }
 
 // let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
@@ -437,11 +399,13 @@ for (let i = 0; i < 10; i++) {
 
 // balls[0].draw();
 
+
+let simulation = new CollisionSystem(balls);
+simulation.redraw();
 function test(){
-    let simulation = new CollisionSystem(balls);
     simulation.redraw();
-    simulation.simulate(10000);
-    // requestAnimationFrame(test);
+    simulation.simulate(10);
+    requestAnimationFrame(test);
 }
 
 test();
