@@ -372,7 +372,7 @@ function path(b){
     max = 3;
     min = -3
     context.beginPath();
-    context.strokeStyle = 'black'
+    context.strokeStyle = 'white'
     context.moveTo(b.position.x, b.position.y)
     b.velocity.x = (Math.random() * (max - min)  + min) * 2;
     b.velocity.y = (Math.random() * (max - min) + min) * 2;
@@ -389,15 +389,13 @@ function path(b){
 
 
 balls = [];
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 300; i++) {
     let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
-    balls[i] = new Ball(random(0, CANVAS_WIDTH), random(0, CANVAS_HEIGHT), 1, 1, 30, color);
+    balls[i] = new Ball(random(0, CANVAS_WIDTH), random(0, CANVAS_HEIGHT), 3, 1, 5, color);
 }
 
-// let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
-// balls.push(new Ball(100,100,5,5,20,'red'));
+balls.push(new Ball(random(0, CANVAS_WIDTH), random(0, CANVAS_HEIGHT), 0, 0, 40, 'white'))
 
-// balls[0].draw();
 
 
 let simulation = new CollisionSystem(balls);
