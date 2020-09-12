@@ -404,9 +404,9 @@ if(mq.matches){
 else{
     radius = 3;
     balls = [];
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 500; i++) {
         let color = 'rgb(' + random(0, 255) + ',' + random(0, 255) + ',' + random(0, 255) + ')'
-        balls[i] = new Ball(random(radius, CANVAS_WIDTH - radius), random(radius, CANVAS_HEIGHT-radius), Math.pow(-1,i),Math.pow(-1,i), radius, color);
+        balls[i] = new Ball(random(radius, CANVAS_WIDTH - radius), random(radius, CANVAS_HEIGHT-radius), 3 * Math.pow(-1,i),3 * Math.pow(-1,i), radius, color);
     }
     radius *= 10;
     balls.push(new Ball(random(radius, CANVAS_WIDTH - radius), random(radius, CANVAS_HEIGHT - radius), 0, 0, radius, 'white'))

@@ -13,6 +13,23 @@ context.fillStyle = 'red';
 context.fillRect(0,0, CANVAS_WIDTH, CANVAS_WIDTH);
 
 
+function ArrayMember(x,y, height, width, color="gray"){
+	this.x = x;
+	this.y = y;
+	this.height = height;
+	this.width = width;
+	this.color = color;
+	this.draw = ()=>{
+		console.log(this.height)
+		context.fillStyle = this.color;
+		context.fillRect(this.x,this.y, this.width, -5 * this.height);
+	}
+
+	this.isSorted = () => this.color = "green";
+
+}
+
+
 
 function draw(array){
 	context.save();
@@ -23,22 +40,25 @@ function draw(array){
 	context.lineTo(canvas.width, canvas.height-100);
 	context.stroke();
 	context.restore();
-	context.fillStyle = 'white';
-	for(let i = 0; i < array.length; i++){
-		context.fillRect(0 + 10*i,canvas.height-100,9,-5 * array[i]);
+	for(let  i = 0; i < 100; i++){
+		array[i].draw();
 	}
 }
 
-
+const shuffledArrayInRange = (bottom = 1, top = 30) => {
+  const arr = [];
+  for (let i = bottom; i < top; i++) arr.push(i);
+  return arr.sort((a, b) => (Math.random() > 0.5 ? 1 : -1));
+};
 
 
 let array = []
-
+let a = shuffledArrayInRange(1,101);
 for(let i = 0; i < 100; i++){
-	array.push(100-i);
+	array.push(new ArrayMember(12 * i, canvas.height-100,a[i], 10, "gray"));
 }
 
-
+console.log(array);
 let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function bubble_Sort(arr){
@@ -47,12 +67,13 @@ async function bubble_Sort(arr){
         for(let j = 0; j < size - 1; j++){
             draw(array);
             await delay(1); // <----
-            if (arr[j] > arr[j+1]){
-                let temp = arr[j];
-                arr[j] = arr[j+1];
-                arr[j+1] = temp;
+            if (arr[j].height > arr[j+1].height){
+                let temp = arr[j].height;
+                arr[j].height = arr[j+1].height;
+                arr[j+1].height = temp;
             }
         }
+		arr[size-i-1].isSorted();
     }
     return arr;
 }
