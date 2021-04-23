@@ -3,3 +3,5 @@
 [Brownian Motion](https://imsanskar.github.io/JS_Projects/Brownian%20Motion/)
 
 [Bubble Sort](https://imsanskar.github.io/JS_Projects/Sort_Visualization/)
+
+[Mandelbrot Set](https://imsanskar.github.io/JS_Projects/Mandelbrot/)
