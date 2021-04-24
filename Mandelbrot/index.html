@@ -18,21 +18,37 @@
             height: 100%;
             overflow: hidden;
             display: block;
+			padding: 0;
         }
 
 		.selector {
 			border: 2px solid #000;
-			opacity: .2;
+			opacity: .5;
 			position: fixed;
 			z-index: 999;
 			transform: translate(-50%, -50%);
 			pointer-events: none;
 		}
+
+		.controls{
+			position: fixed;
+			background-color: #f0f0f0;
+			z-index: 2;
+		}
+
+		canvas{
+			width: 100%;
+		}
     </style>
 </head>
 <body>
-	<input type="button" id="reset" value="Reset">
-	
+	<div class = "controls">
+		<div>
+			Zoom Size:
+			<input type="range" min="-50" max="50" value="10" id="zoomsize">
+		</div>
+		<input type="button" id="reset" value="Reset">
+	</div>
 	<!-- A little box that shows what part of the Mandelbrot set will be shown on click -->
 	<div class="selector"></div>
 

@@ -94,6 +94,19 @@ let imag = imagInitial
 
 drawMandelBrotSet(real.start, real.end, imag.start, imag.end).then(completed => console.log("Completed"))
 
+//set the zoom in and out
+document.querySelector('#zoomsize').addEventListener(
+	'change', 
+	event => {
+		zoomsize = parseInt(event.target.value)
+		//zooms out if zoomsize is less than 0
+		if(zoomsize < 0){
+			zoomsize = 1 / Math.abs(zoomsize)
+		}
+	}
+  )
+
+
 
 /*
 	For the zoom
@@ -128,8 +141,16 @@ document.addEventListener('dblclick', event => {
 	const selector = document.querySelector('.selector')
 	selector.style.top = `${event.clientY}px`
 	selector.style.left = `${event.clientX}px`
-	selector.style.width = `${window.innerWidth / 10}px`
-	selector.style.height = `${window.innerHeight / 10}px`
+	if(zoomsize > 1){
+		selector.style.borderColor = "blue"
+		selector.style.width = `${window.innerWidth / zoomsize}px`
+		selector.style.height = `${window.innerHeight / zoomsize}px`
+	}
+	else{
+		selector.style.borderColor = "green"
+		selector.style.width = `${window.innerWidth * zoomsize}px`
+		selector.style.height = `${window.innerHeight * zoomsize}px`
+	}
 })
 
 //to return to initial state
